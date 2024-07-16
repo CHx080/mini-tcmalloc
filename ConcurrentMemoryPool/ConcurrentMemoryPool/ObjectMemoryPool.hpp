@@ -33,6 +33,7 @@ public:
 		}
 
 		new(obj)T; //定位new初始化对象
+		return obj;
 	}
 
 	void Delete(T* obj)
