@@ -18,9 +18,12 @@ void CreateThreadCache()
 
 int main()
 {
-	std::thread t1(CreateThreadCache);
+	/*std::thread t1(CreateThreadCache);
 	t1.join();
 	std::thread t2(CreateThreadCache);
-	t2.join();
+	t2.join();*/
+
+	
+	
 	return 0;
 }

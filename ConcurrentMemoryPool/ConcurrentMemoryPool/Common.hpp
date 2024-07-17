@@ -1,7 +1,16 @@
 ﻿#pragma once
 #include <assert.h>
-constexpr size_t MAX_BYTES = 256 * 1024;  //小于256KB的找ThreadCache要
-constexpr size_t NUM_LIST = 208;
+#include <mutex>
+#ifdef _WIN64
+typedef unsigned long long PAGE_ID;
+#elif _WIN32
+typedef size_t PAGE_ID;
+#endif
+
+constexpr const size_t MAX_BYTES = 256 * 1024;  //小于256KB的找ThreadCache要
+constexpr const size_t NUM_LIST = 208;
+constexpr const size_t NPAGES = 128; //1024kb
+constexpr const size_t PAGE_SHIFT = 13; //1页大小为8K 
 
 class FreeList //管理切分好的块空间
 {
@@ -37,7 +46,60 @@ private:
 	size_t _maxsize = 1; //与慢开始算法相关
 };
 
+struct Span //管理
+{
+	PAGE_ID _pageid = 0; //大块内存页码
+	size_t _n = 0; //页的数量
+	Span* _next = nullptr;
+	Span* _prev = nullptr;
 
+	size_t _useCount = 0; //分配的threadcache的个数
+	void* _freelist = nullptr; //自由链表
+};
+
+class SpanList
+{
+private:
+	Span* _head = nullptr; //哨兵位
+
+public:
+	std::mutex _mtx; //桶锁
+
+	SpanList()
+	{
+		_head = new Span;
+		_head->_next = _head;
+		_head->_prev = _head;
+	}
+	
+	Span* Begin()
+	{
+		return _head->_next;
+	}
+
+	Span* End()
+	{
+		return _head;
+	}
+
+	void Insert(Span* cur, Span* newSpan)
+	{
+		assert(cur && newSpan);
+		newSpan->_next = cur;
+		newSpan->_prev = cur->_prev;
+		cur->_prev->_next = newSpan;
+		cur->_prev = newSpan;
+	}
+
+	void Erase(Span* cur)
+	{
+		assert(cur && cur != _head);
+		cur->_prev = cur->_next;
+		cur->_next->_prev = cur->_prev;
+
+		//不需要delete cur，将cur交给下一层，不是系统
+	}
+};
 
 class SizeMap
 {
@@ -94,18 +156,26 @@ public:
 		}
 	}
 
-	static size_t NumMoveSize(size_t size)
+	static size_t NumMoveSize(size_t bytes)
 	{	
-		if (size == 0)
+		if (bytes == 0)
 			return 0;
 		// [2, 512]，⼀次批量移动多少个对象的(慢启动)上下限值
 		// ⼩对象⼀次批量上限⾼
 		// ⼩对象⼀次批量上限低
-		size_t num = MAX_BYTES / size;
+		size_t num = MAX_BYTES / bytes;
 		if (num < 2)
 			num = 2;
 		if (num > 512)
 			num = 512;
 		return num;
+	}
+
+	static size_t NumMovePage(size_t bytes)
+	{
+		size_t npage = NumMoveSize(bytes) * bytes;
+		npage >>= PAGE_SHIFT;
+		if (npage == 0) npage = 1;
+		return npage; //计算页码
 	}
 };
