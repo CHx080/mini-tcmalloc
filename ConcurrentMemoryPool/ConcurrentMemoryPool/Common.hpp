@@ -22,8 +22,6 @@ public:
 		return obj;
 	}
 
-	
-
 	bool IsEmpty()
 	{
 		return _freelist == nullptr;
@@ -103,7 +101,7 @@ public:
 		// [2, 512]，⼀次批量移动多少个对象的(慢启动)上下限值
 		// ⼩对象⼀次批量上限⾼
 		// ⼩对象⼀次批量上限低
-		int num = MAX_BYTES / size;
+		size_t num = MAX_BYTES / size;
 		if (num < 2)
 			num = 2;
 		if (num > 512)

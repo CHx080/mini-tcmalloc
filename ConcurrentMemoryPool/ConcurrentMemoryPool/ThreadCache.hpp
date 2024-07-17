@@ -33,11 +33,10 @@ public:
 		_freelists[index].Push(p);
 	}
 
-	void* FetchFromCentralCache(size_t index,size_t bytes)
+	void* FetchFromCentralCache(size_t index,size_t bytes) //bytes为经过对齐后的字节数
 	{
 	
-		/*慢开始调节算法，小对象多给，大对象少给
-		最开始不会一次向中心缓存申请太多*/
+		/*慢开始调节算法，小对象多给，大对象少给,随着申请次数的增多而提高batchnum*/
 		size_t batchnum = std::min(_freelists[index].Maxsize(), SizeMap::NumMoveSize(bytes));
 
 		if (_freelists[index].Maxsize() == batchnum)
@@ -48,24 +47,17 @@ public:
 		//试图从从中心缓存中截取一段空间
 		void* start = nullptr, *end = nullptr;//作为输出型参数
 		size_t actualnum = _centralcache->FetchRangeObj(start, end, batchnum, bytes);
-		assert(actualnum > 1);
-		if (actualnum == 1)
-		{
-			assert(end == start);
-			return start;
-		}
-		else
-		{
-			void* temp = *(void**)start;
-			while (temp != end)
-			{
-				_freelists[index].Push(temp);
-				temp = *(void**)temp;
-			}
-			_freelists[index].Push(end); //把多的空间暂存入线程所拥有的自由链表中
-			return start;
-		}
 
+		assert(actualnum > 1 && start && end);
+		
+		void* temp = *(void**)start;
+		while (temp != end)
+		{
+			_freelists[index].Push(temp);
+			temp = *(void**)temp;
+		}
+		_freelists[index].Push(end); //把多的空间暂存入线程所拥有的自由链表中
+		return start;
 	}
 };
 
