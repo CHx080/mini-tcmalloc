@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <assert.h>
 constexpr size_t MAX_BYTES = 256 * 1024;  //小于256KB的找ThreadCache要
+constexpr size_t NUM_LIST = 208;
 
 class FreeList //管理切分好的块空间
 {
@@ -21,13 +22,21 @@ public:
 		return obj;
 	}
 
+	
+
 	bool IsEmpty()
 	{
 		return _freelist == nullptr;
 	}
+
+	size_t& Maxsize()
+	{
+		return _maxsize;
+	}
 private:
 	void* _freelist = nullptr; //自由链表的头指针
 	size_t _size = 0; //自由链表的长度
+	size_t _maxsize = 1; //与慢开始算法相关
 };
 
 
@@ -85,6 +94,20 @@ public:
 		else {
 			assert(false);
 		}
+	}
 
+	static size_t NumMoveSize(size_t size)
+	{	
+		if (size == 0)
+			return 0;
+		// [2, 512]，⼀次批量移动多少个对象的(慢启动)上下限值
+		// ⼩对象⼀次批量上限⾼
+		// ⼩对象⼀次批量上限低
+		int num = MAX_BYTES / size;
+		if (num < 2)
+			num = 2;
+		if (num > 512)
+			num = 512;
+		return num;
 	}
 };
