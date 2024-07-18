@@ -23,7 +23,7 @@ private:
 			}
 			cur = cur->_next;
 		}
-		spanlist._mtx.unlock();
+		spanlist._mtx.unlock(); //解桶锁，方便其他线程释放空间
 
 		//向pagecache要空间
 		_pagecache->_mtx.lock();
