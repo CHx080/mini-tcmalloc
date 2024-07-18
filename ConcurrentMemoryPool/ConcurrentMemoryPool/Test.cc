@@ -1,29 +1,23 @@
 #define _CRT_SECURE_NO_WARNING 1
-#include <iostream>
+
 #include <thread>
 #include "ThreadCache.hpp"
-using std::cout;
-using std::endl;
 
 
-void CreateThreadCache()
+void Test1()
 {
 	if (TLSthreadcache == nullptr)
 	{
 		TLSthreadcache = new ThreadCache;
 	}
-	for (int i = 0; i < 5; ++i) cout << std::this_thread::get_id()<<" : "<<TLSthreadcache << endl;
+	
+	void* p1 = TLSthreadcache->Allocate(1);
 }
 
 
 int main()
 {
-	/*std::thread t1(CreateThreadCache);
-	t1.join();
-	std::thread t2(CreateThreadCache);
-	t2.join();*/
-
-	
+	Test1();
 	
 	return 0;
 }

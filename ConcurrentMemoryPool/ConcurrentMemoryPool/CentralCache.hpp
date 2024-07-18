@@ -13,7 +13,6 @@ private:
 
 	Span* GetOneSpan(SpanList& spanlist, size_t bytes)//bytes用于pagecache的切片
 	{
-		spanlist._mtx.lock();
 		Span* cur = spanlist.Begin();
 		while (cur != spanlist.End())
 		{
@@ -32,8 +31,8 @@ private:
 
 		//计算span的页起始地址和总页空间
 		char* start = (char*)(span->_pageid << PAGE_SHIFT);
-		size_t bytes = span->_n << PAGE_SHIFT;
-		char* end = start + bytes;
+		size_t sum_bytes = span->_n << PAGE_SHIFT;
+		char* end = start + sum_bytes;
 		
 		//切分,采用尾插，虽然是链表连接，物理存储却是连续的
 		span->_freelist = (void*)start;
@@ -48,7 +47,7 @@ private:
 
 		spanlist._mtx.lock();
 		spanlist.Insert(spanlist.Begin(), span);
-		spanlist._mtx.unlock();
+
 		return span;
 	}
 public:
@@ -56,8 +55,8 @@ public:
 	{
 		size_t index = SizeMap::Index(bytes);
 		
-
-		Span* span = GetOneSpan(_spanlists[index], batchnum);
+		_spanlists[index]._mtx.lock();
+		Span* span = GetOneSpan(_spanlists[index], bytes);
 		assert(span);
 		assert(span->_freelist);
 
@@ -72,7 +71,7 @@ public:
 			++i;
 			++actualnum;
 		}
-
+		_spanlists[index]._mtx.unlock();
 		
 		return actualnum;
 	}

@@ -25,11 +25,11 @@ public:
 		assert(k);
 		if (!_spanlist[k].IsEmpty()) return _spanlist[k].Front();
 
-		for (int i = k+1; i < NPAGES; ++i)
+		for (size_t i = k+1; i < NPAGES; ++i)
 		{
 			if (!_spanlist[i].IsEmpty())
 			{
-				Span* nspan = _spanlist->Begin();
+				Span* nspan = _spanlist->Front();
 				Span* kspan = new Span;
 
 				kspan->_pageid = nspan->_pageid;
@@ -45,11 +45,11 @@ public:
 
 		//ÕÒÏµÍ³ÉêÇë
 		Span* bigSpan = new Span;
-		bigSpan->_freelist = SystemAlloc(k);
+		void* ptr = SystemAlloc(NPAGES-1);
 		bigSpan->_n = NPAGES - 1;
-		bigSpan->_pageid = (PAGE_ID)(bigSpan->_freelist) >> PAGE_SHIFT;
+		bigSpan->_pageid = (PAGE_ID)(ptr) >> PAGE_SHIFT;
 		_spanlist[NPAGES - 1].Insert(_spanlist[NPAGES - 1].Begin(), bigSpan);
-
+		cout << bigSpan << " : " << ptr << endl;
 		return NewSpan(k);
 	}
 };

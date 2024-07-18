@@ -1,6 +1,10 @@
 ﻿#pragma once
 #include <assert.h>
 #include <mutex>
+#include <iostream>
+using std::cout;
+using std::endl;
+
 #ifdef _WIN64
 typedef unsigned long long PAGE_ID;
 #elif _WIN32

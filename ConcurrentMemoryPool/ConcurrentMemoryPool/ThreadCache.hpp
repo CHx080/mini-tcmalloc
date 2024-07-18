@@ -37,7 +37,7 @@ public:
 	{
 	
 		/*慢开始调节算法，小对象多给，大对象少给,随着申请次数的增多而提高batchnum*/
-		size_t batchnum = std::min(_freelists[index].Maxsize(), SizeMap::NumMoveSize(bytes));
+		size_t batchnum = min(_freelists[index].Maxsize(), SizeMap::NumMoveSize(bytes));
 
 		if (_freelists[index].Maxsize() == batchnum)
 		{
