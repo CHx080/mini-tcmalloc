@@ -13,6 +13,7 @@ private:
 
 	Span* GetOneSpan(SpanList& spanlist, size_t bytes)//bytes用于pagecache的切片
 	{
+		spanlist._mtx.lock();
 		Span* cur = spanlist.Begin();
 		while (cur != spanlist.End())
 		{
@@ -22,9 +23,12 @@ private:
 			}
 			cur = cur->_next;
 		}
+		spanlist._mtx.unlock();
 
 		//向pagecache要空间
+		_pagecache->_mtx.lock();
 		Span* span=_pagecache->NewSpan(SizeMap::NumMovePage(bytes));
+		_pagecache->_mtx.unlock();
 
 		//计算span的页起始地址和总页空间
 		char* start = (char*)(span->_pageid << PAGE_SHIFT);
@@ -42,14 +46,16 @@ private:
 			start += bytes;
 		}
 
+		spanlist._mtx.lock();
 		spanlist.Insert(spanlist.Begin(), span);
+		spanlist._mtx.unlock();
 		return span;
 	}
 public:
 	size_t FetchRangeObj(void*& start, void*& end, size_t batchnum, size_t bytes)
 	{
 		size_t index = SizeMap::Index(bytes);
-		_spanlists[index]._mtx.lock();
+		
 
 		Span* span = GetOneSpan(_spanlists[index], batchnum);
 		assert(span);
@@ -67,7 +73,7 @@ public:
 			++actualnum;
 		}
 
-		_spanlists[index]._mtx.unlock();
+		
 		return actualnum;
 	}
 }; 
