@@ -6,23 +6,23 @@ class ThreadCache
 {
 private:
 	FreeList _freelists[NUM_LIST];
-	CentralCache* _centralcache = new CentralCache;
+	static CentralCache* _centralcache;
 public:
 	void* Allocate(size_t bytes)
 	{
 		assert(bytes <= MAX_BYTES); //所申请的字节数必须小于256KB
 		size_t align = SizeMap::RoundUp(bytes);
-		size_t index = SizeMap::Index(bytes);
+		size_t index = SizeMap::Index(align);
 
-		if (!_freelists[index].IsEmpty())
+		if (!_freelists[index].IsEmpty())	//对应大小的自由链表中由闲置空间，直接获取
 		{
 			return _freelists->Pop();
 		}
-		else
+		else //自由链表为空，找下一层要
 		{
 			return FetchFromCentralCache(index, align);
 		}
-		//如果对应的自由链表有空间直接取，不够从中心缓存中申请
+		
 	}
 
 	void Deallocate(void* p,size_t bytes)
@@ -61,4 +61,5 @@ public:
 	}
 };
 
-static __declspec(thread) ThreadCache* TLSthreadcache = nullptr;
+static __declspec(thread) ThreadCache* TLSthreadcache = nullptr; //声明每一个线程独占一个threadcache
+CentralCache* ThreadCache::_centralcache = new CentralCache;

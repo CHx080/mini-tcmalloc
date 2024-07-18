@@ -9,7 +9,7 @@ typedef size_t PAGE_ID;
 
 constexpr const size_t MAX_BYTES = 256 * 1024;  //小于256KB的找ThreadCache要
 constexpr const size_t NUM_LIST = 208;
-constexpr const size_t NPAGES = 128; //1024kb
+constexpr const size_t NPAGES = 129; //1024kb 129-1
 constexpr const size_t PAGE_SHIFT = 13; //1页大小为8K 
 
 class FreeList //管理切分好的块空间
@@ -40,6 +40,11 @@ public:
 	{
 		return _maxsize;
 	}
+
+	size_t Size()
+	{
+		return _size;
+	}
 private:
 	void* _freelist = nullptr; //自由链表的头指针
 	size_t _size = 0; //自由链表的长度
@@ -55,6 +60,9 @@ struct Span //管理
 
 	size_t _useCount = 0; //分配的threadcache的个数
 	void* _freelist = nullptr; //自由链表
+
+	bool _isuse = false; //是否在被使用
+	size_t _objsize = 0; //切好的块大小
 };
 
 class SpanList
@@ -64,6 +72,11 @@ private:
 
 public:
 	std::mutex _mtx; //桶锁
+
+	bool IsEmpty()
+	{
+		return _head->_next = _head;
+	}
 
 	SpanList()
 	{
@@ -98,6 +111,13 @@ public:
 		cur->_next->_prev = cur->_prev;
 
 		//不需要delete cur，将cur交给下一层，不是系统
+	}
+
+	Span* Front()
+	{
+		Span* span= _head->_next;
+		Erase(span);
+		return span;
 	}
 };
 
@@ -162,7 +182,7 @@ public:
 			return 0;
 		// [2, 512]，⼀次批量移动多少个对象的(慢启动)上下限值
 		// ⼩对象⼀次批量上限⾼
-		// ⼩对象⼀次批量上限低
+	
 		size_t num = MAX_BYTES / bytes;
 		if (num < 2)
 			num = 2;
@@ -176,6 +196,6 @@ public:
 		size_t npage = NumMoveSize(bytes) * bytes;
 		npage >>= PAGE_SHIFT;
 		if (npage == 0) npage = 1;
-		return npage; //计算页码
+		return npage; 
 	}
 };

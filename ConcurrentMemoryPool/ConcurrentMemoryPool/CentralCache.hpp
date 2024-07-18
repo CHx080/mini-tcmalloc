@@ -9,9 +9,9 @@ class CentralCache
 {
 private:
 	SpanList _spanlists[NUM_LIST];
-	PageCache* _pagecache = new PageCache;
+	static PageCache* _pagecache;
 
-	Span* GetOneSpan(SpanList& spanlist, size_t bytes)//size用于pagecache的切片
+	Span* GetOneSpan(SpanList& spanlist, size_t bytes)//bytes用于pagecache的切片
 	{
 		Span* cur = spanlist.Begin();
 		while (cur != spanlist.End())
@@ -71,3 +71,4 @@ public:
 		return actualnum;
 	}
 }; 
+PageCache* CentralCache::_pagecache = new PageCache;
