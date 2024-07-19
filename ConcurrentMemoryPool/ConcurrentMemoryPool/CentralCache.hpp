@@ -64,16 +64,20 @@ public:
 		end = start; 
 		size_t actualnum = 0; //实际能提供的空间
 		size_t i = 0;
-
-		while (i < batchnum - 1 && end != nullptr)
+		
+		while (i < batchnum && *(void**)end != nullptr) //走到最后一块空间，不走到空
 		{
 			end = *(void**)end;
 			++i;
 			++actualnum;
 		}
+		
 		_spanlists[index]._mtx.unlock();
 		
 		return actualnum;
 	}
 }; 
 PageCache* CentralCache::_pagecache = new PageCache;
+
+//容易疏忽的小错误：两个数比较大小时确保类型相同，隐式提升结果会不符合预期，(int)-1<(size_t)0结果是false
+		//cout << ((int)-1 < (size_t)0) << endl;

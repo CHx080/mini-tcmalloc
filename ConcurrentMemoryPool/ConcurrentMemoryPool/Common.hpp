@@ -79,7 +79,7 @@ public:
 
 	bool IsEmpty()
 	{
-		return _head->_next = _head;
+		return _head->_next == _head;
 	}
 
 	SpanList()

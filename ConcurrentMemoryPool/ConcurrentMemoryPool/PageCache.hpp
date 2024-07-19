@@ -29,7 +29,7 @@ public:
 		{
 			if (!_spanlist[i].IsEmpty())
 			{
-				Span* nspan = _spanlist->Front();
+				Span* nspan = _spanlist[i].Front();
 				Span* kspan = new Span;
 
 				kspan->_pageid = nspan->_pageid;
@@ -49,7 +49,7 @@ public:
 		bigSpan->_n = NPAGES - 1;
 		bigSpan->_pageid = (PAGE_ID)(ptr) >> PAGE_SHIFT;
 		_spanlist[NPAGES - 1].Insert(_spanlist[NPAGES - 1].Begin(), bigSpan);
-		cout << bigSpan << " : " << ptr << endl;
+		
 		return NewSpan(k);
 	}
 };
