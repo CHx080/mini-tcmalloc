@@ -12,26 +12,26 @@ void Test1()
 		TLSthreadcache = new ThreadCache;
 	}
 	
-	/*char* p1 = (char*)TLSthreadcache->Allocate(1);
+	char* p1 = (char*)TLSthreadcache->Allocate(1);
 	char* p2 = (char*)TLSthreadcache->Allocate(2);
 	char* p3 = (char*)TLSthreadcache->Allocate(3);
 	char* p4 = (char*)TLSthreadcache->Allocate(4);
 	char* p5 = (char*)TLSthreadcache->Allocate(5);
 	char* p6 = (char*)TLSthreadcache->Allocate(6);
 	char* p7 = (char*)TLSthreadcache->Allocate(7);
-	char* p8 = (char*)TLSthreadcache->Allocate(10);*/
+	char* p8 = (char*)TLSthreadcache->Allocate(8);
 
-	void* p1 =  TLSthreadcache->Allocate(1);
+	/*void* p1 =  TLSthreadcache->Allocate(1);
 	void* p2 =  TLSthreadcache->Allocate(2);
 	void* p3 =  TLSthreadcache->Allocate(3);
 	void* p4 =  TLSthreadcache->Allocate(4);
 	void* p5 =  TLSthreadcache->Allocate(5);
 	void* p6 =  TLSthreadcache->Allocate(6);
 	void* p7 =  TLSthreadcache->Allocate(7);
-	void* p8 =  TLSthreadcache->Allocate(10);
+	void* p8 =  TLSthreadcache->Allocate(10);*/
 	
-	cout << p1 << endl << p2 << endl << p3 << endl << p4 << endl << p5 << endl << p6 << endl << p7 << endl << p8 << endl;
-	//cout << p2-p1 << endl << p3-p2 << endl << p4-p3 << endl << p5-p4 << endl << p6-p5 << endl << p7-p6 << endl << p8-p7 << endl;
+	//cout << p1 << endl << p2 << endl << p3 << endl << p4 << endl << p5 << endl << p6 << endl << p7 << endl << p8 << endl;
+	cout << p2-p1 << endl << p3-p2 << endl << p4-p3 << endl << p5-p4 << endl << p6-p5 << endl << p7-p6 << endl << p8-p7 << endl;
 
 
 }
@@ -39,7 +39,7 @@ void Test1()
 
 int main()
 {
-	std::thread t1(Test1);
+	/*std::thread t1(Test1);
 	std::thread t2(Test1);
 	std::thread t3(Test1);
 	std::thread t4(Test1);
@@ -59,7 +59,7 @@ int main()
 	t7.join();
 	t8.join();
 	t9.join();
-	t10.join();
+	t10.join();*/
 	
 	Test1();
 	

@@ -57,12 +57,8 @@ public:
 		if (actualnum > 1)
 		{
 			void* temp = *(void**)start;
-			while (temp != nullptr)
-			{
-				_freelists[index].Push(temp);
-				temp = *(void**)temp;
-			}
-			 //把多的空间暂存入线程所拥有的自由链表中
+			_freelists[index].PushRange(temp, end);
+			//把多的空间暂存入线程所拥有的自由链表中
 		}
 
 		

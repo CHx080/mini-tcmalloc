@@ -26,7 +26,11 @@ public:
 		_freelist = obj;
 		++_size;
 	}
-
+	void PushRange(void* start, void* end)
+	{
+		*(void**)end = _freelist;
+		_freelist = start; //控制头尾即可
+	}
 	void* Pop()//头删
 	{
 		void* obj = _freelist;
