@@ -15,7 +15,7 @@ public:
 		size_t index = SizeMap::Index(align);
 		/*cout << align << endl;
 		cout << index << endl;*/
-		if (!_freelists[index].IsEmpty())	//对应大小的自由链表中由闲置空间，直接获取
+		if (!_freelists[index].IsEmpty())	//对应大小的自由链表中闲置空间，直接获取
 		{
 			return _freelists->Pop();
 		}
@@ -49,17 +49,23 @@ public:
 		void* start = nullptr, *end = nullptr;//作为输出型参数
 		size_t actualnum = _centralcache->FetchRangeObj(start, end, batchnum, bytes);
 
+
 		assert(actualnum >= 1);
 		assert(start);
 		assert(end);
 		
-		void* temp = *(void**)start;
-		while (temp != end)
+		if (actualnum > 1)
 		{
-			_freelists[index].Push(temp);
-			temp = *(void**)temp;
+			void* temp = *(void**)start;
+			while (temp != nullptr)
+			{
+				_freelists[index].Push(temp);
+				temp = *(void**)temp;
+			}
+			 //把多的空间暂存入线程所拥有的自由链表中
 		}
-		_freelists[index].Push(end); //把多的空间暂存入线程所拥有的自由链表中
+
+		
 		return start;
 	}
 };

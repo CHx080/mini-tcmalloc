@@ -111,7 +111,7 @@ public:
 	void Erase(Span* cur)
 	{
 		assert(cur && cur != _head);
-		cur->_prev = cur->_next;
+		cur->_prev->_next = cur->_next;
 		cur->_next->_prev = cur->_prev;
 
 		//不需要delete cur，将cur交给下一层，不是系统
@@ -152,7 +152,7 @@ public:
 		else if (bytes <= 81024) return _RoundUp(bytes, 128);
 		else if (bytes <= 64 * 1024) return _RoundUp(bytes, 1024);
 		else if (bytes <= 256 * 1024) return _RoundUp(bytes, 8 * 1024);
-		else assert(false);
+		else { assert(0); return -1; }
 	}
 
 	static size_t Index(size_t bytes)
@@ -177,6 +177,7 @@ public:
 		}
 		else {
 			assert(false);
+			return -1;
 		}
 	}
 
