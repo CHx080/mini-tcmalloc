@@ -20,6 +20,12 @@ void Test1()
 	char* p6 = (char*)TLSthreadcache->Allocate(6);
 	char* p7 = (char*)TLSthreadcache->Allocate(7);
 	char* p8 = (char*)TLSthreadcache->Allocate(8);
+	char* p9 = (char*)TLSthreadcache->Allocate(8);
+	char* p10 = (char*)TLSthreadcache->Allocate(8);
+	char* p11 = (char*)TLSthreadcache->Allocate(8);
+	char* p12 = (char*)TLSthreadcache->Allocate(8);
+	char* p13 = (char*)TLSthreadcache->Allocate(8);
+	char* p14 = (char*)TLSthreadcache->Allocate(8);
 
 	TLSthreadcache->Deallocate(p1, 1);
 	TLSthreadcache->Deallocate(p2, 2);
@@ -29,6 +35,12 @@ void Test1()
 	TLSthreadcache->Deallocate(p6, 6);
 	TLSthreadcache->Deallocate(p7, 7);
 	TLSthreadcache->Deallocate(p8, 8);
+	TLSthreadcache->Deallocate(p9, 8);
+	TLSthreadcache->Deallocate(p10, 8);
+	TLSthreadcache->Deallocate(p11, 8);
+	TLSthreadcache->Deallocate(p12, 8);
+	TLSthreadcache->Deallocate(p13, 8);
+	TLSthreadcache->Deallocate(p14, 8);
 
 	/*void* p1 =  TLSthreadcache->Allocate(1);
 	void* p2 =  TLSthreadcache->Allocate(2);
@@ -48,7 +60,7 @@ void Test1()
 
 int main()
 {
-	/*std::thread t1(Test1);
+	std::thread t1(Test1);
 	std::thread t2(Test1);
 	std::thread t3(Test1);
 	std::thread t4(Test1);
@@ -68,7 +80,7 @@ int main()
 	t7.join();
 	t8.join();
 	t9.join();
-	t10.join();*/
+	t10.join();
 	
 	Test1();
 	

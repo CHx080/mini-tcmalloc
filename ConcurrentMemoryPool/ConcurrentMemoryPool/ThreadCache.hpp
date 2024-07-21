@@ -86,10 +86,7 @@ private:
 		return start;
 	}
 	
-	void ReleaseToCentralCache(void* start, void* end, size_t n)
-	{
-
-	}
+	
 };
 
 static __declspec(thread) ThreadCache* TLSthreadcache = nullptr; //声明每一个线程独占一个threadcache
