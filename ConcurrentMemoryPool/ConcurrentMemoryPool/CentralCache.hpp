@@ -27,6 +27,7 @@ private:
 		//向pagecache要空间
 		_pagecache->_mtx.lock();
 		Span* span=_pagecache->NewSpan(SizeMap::NumMovePage(bytes));
+		span->_isuse = true;
 		_pagecache->_mtx.unlock();
 
 		//计算span的页起始地址和总页空间
@@ -74,10 +75,39 @@ public:
 		
 		span->_freelist = *(void**)end;
 		*(void**)end = nullptr;
-
+		span->_useCount += actualnum;
 		_spanlists[index]._mtx.unlock();
-		
 		return actualnum;
+	}
+
+	void RecoverFromThreadCache(void* start, size_t bytes) //每一小块空间需要找到其对应的span
+	{
+		size_t index = SizeMap::Index(bytes);
+		_spanlists[index]._mtx.lock();
+		//根据地址计算出相应的页号后把空间块放入指定的span跨度中
+		while (start)
+		{
+			void* next = *(void**)start;
+			Span* span = _pagecache->ConvertToSpanAdd(start); //地址--->页号--->span
+			*(void**)start = span->_freelist;
+			span->_freelist = start;
+			span->_useCount--; 
+			
+
+			if (span->_useCount == 0) //将一整个span还给pagecache
+			{
+				span->_freelist = nullptr;
+				span->_prev = nullptr;
+				span->_next = nullptr;
+				span->_isuse = false;
+				_spanlists[index]._mtx.unlock();
+				_pagecache->RecoverFromCentralCache(span);
+				_spanlists[index]._mtx.lock();
+			}
+
+			start = next;
+		}
+		_spanlists[index]._mtx.unlock();
 	}
 }; 
 PageCache* CentralCache::_pagecache = new PageCache;

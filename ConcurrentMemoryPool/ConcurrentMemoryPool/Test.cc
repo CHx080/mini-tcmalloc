@@ -21,6 +21,15 @@ void Test1()
 	char* p7 = (char*)TLSthreadcache->Allocate(7);
 	char* p8 = (char*)TLSthreadcache->Allocate(8);
 
+	TLSthreadcache->Deallocate(p1, 1);
+	TLSthreadcache->Deallocate(p2, 2);
+	TLSthreadcache->Deallocate(p3, 3);
+	TLSthreadcache->Deallocate(p4, 4);
+	TLSthreadcache->Deallocate(p5, 5);
+	TLSthreadcache->Deallocate(p6, 6);
+	TLSthreadcache->Deallocate(p7, 7);
+	TLSthreadcache->Deallocate(p8, 8);
+
 	/*void* p1 =  TLSthreadcache->Allocate(1);
 	void* p2 =  TLSthreadcache->Allocate(2);
 	void* p3 =  TLSthreadcache->Allocate(3);
@@ -31,7 +40,7 @@ void Test1()
 	void* p8 =  TLSthreadcache->Allocate(10);*/
 	
 	//cout << p1 << endl << p2 << endl << p3 << endl << p4 << endl << p5 << endl << p6 << endl << p7 << endl << p8 << endl;
-	cout << p2-p1 << endl << p3-p2 << endl << p4-p3 << endl << p5-p4 << endl << p6-p5 << endl << p7-p6 << endl << p8-p7 << endl;
+	//cout << p2-p1 << endl << p3-p2 << endl << p4-p3 << endl << p5-p4 << endl << p6-p5 << endl << p7-p6 << endl << p8-p7 << endl;
 
 
 }

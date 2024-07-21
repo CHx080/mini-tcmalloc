@@ -26,10 +26,11 @@ public:
 		_freelist = obj;
 		++_size;
 	}
-	void PushRange(void* start, void* end)
+	void PushRange(void* start, void* end,size_t n)
 	{
 		*(void**)end = _freelist;
 		_freelist = start; //控制头尾即可
+		_size += n;
 	}
 	void* Pop()//头删
 	{
@@ -37,6 +38,12 @@ public:
 		_freelist = *(void**)obj;
 		--_size;
 		return obj;
+	}
+
+	void PopRange(void* start, void* end, size_t n)
+	{
+		_freelist = *(void**)end;
+		_size -= n;
 	}
 
 	bool IsEmpty()
@@ -52,6 +59,11 @@ public:
 	size_t Size()
 	{
 		return _size;
+	}
+
+	void* PeekHead()
+	{
+		return _freelist;
 	}
 private:
 	void* _freelist = nullptr; //自由链表的头指针

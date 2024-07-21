@@ -29,11 +29,32 @@ public:
 	void Deallocate(void* p,size_t bytes)
 	{
 		assert(p);
-		assert(bytes <= MAX_BYTES);
-		size_t index = SizeMap::Index(bytes);
+		assert(bytes>0 && bytes <= MAX_BYTES);
+		size_t align = SizeMap::RoundUp(bytes);
+		size_t index = SizeMap::Index(align);
 		_freelists[index].Push(p);
-	}
 
+		//如果此时_freelists[index]的自由链表长度达到maxsize，将一部分归还给centralcache
+		if (_freelists[index].Size() > _freelists[index].Maxsize())
+		{
+			void* start=SolveListTooLong(_freelists[index], _freelists[index].Maxsize());
+			_centralcache->RecoverFromThreadCache(start, align);
+		}
+	}
+private:
+	void* SolveListTooLong(FreeList& freelist,size_t n)//n标识归还多少
+	{
+		assert(n <= freelist.Size());
+		void* start = freelist.PeekHead(), * end = freelist.PeekHead();
+		for (int i = 0; i < n - 1; ++i)
+		{
+			end = *(void**)end;
+		}
+		freelist.PopRange(start, end, n);
+		*(void**)end = nullptr;
+
+		return start;
+	}
 	void* FetchFromCentralCache(size_t index,size_t bytes) //bytes为经过对齐后的字节数
 	{
 	
@@ -57,12 +78,17 @@ public:
 		if (actualnum > 1)
 		{
 			void* temp = *(void**)start;
-			_freelists[index].PushRange(temp, end);
+			_freelists[index].PushRange(temp, end,actualnum-1);
 			//把多的空间暂存入线程所拥有的自由链表中
 		}
 
 		
 		return start;
+	}
+	
+	void ReleaseToCentralCache(void* start, void* end, size_t n)
+	{
+
 	}
 };
 
