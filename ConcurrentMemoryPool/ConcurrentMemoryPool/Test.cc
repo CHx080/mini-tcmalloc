@@ -12,7 +12,15 @@ void Test1()
 		TLSthreadcache = new ThreadCache;
 	}
 	
-	char* p1 = (char*)TLSthreadcache->Allocate(1);
+	void* p1 = TLSthreadcache->Allocate(267);
+
+	void* p2 = TLSthreadcache->Allocate(39845);
+	
+	TLSthreadcache->Deallocate(p2, 39845);
+	TLSthreadcache->Deallocate(p1, 267);
+
+
+	/*char* p1 = (char*)TLSthreadcache->Allocate(1);
 	char* p2 = (char*)TLSthreadcache->Allocate(2);
 	char* p3 = (char*)TLSthreadcache->Allocate(3);
 	char* p4 = (char*)TLSthreadcache->Allocate(4);
@@ -40,7 +48,7 @@ void Test1()
 	TLSthreadcache->Deallocate(p11, 8);
 	TLSthreadcache->Deallocate(p12, 8);
 	TLSthreadcache->Deallocate(p13, 8);
-	TLSthreadcache->Deallocate(p14, 8);
+	TLSthreadcache->Deallocate(p14, 8);*/
 
 	/*void* p1 =  TLSthreadcache->Allocate(1);
 	void* p2 =  TLSthreadcache->Allocate(2);
@@ -60,7 +68,7 @@ void Test1()
 
 int main()
 {
-	std::thread t1(Test1);
+	/*std::thread t1(Test1);
 	std::thread t2(Test1);
 	std::thread t3(Test1);
 	std::thread t4(Test1);
@@ -80,7 +88,7 @@ int main()
 	t7.join();
 	t8.join();
 	t9.join();
-	t10.join();
+	t10.join();*/
 	
 	Test1();
 	

@@ -75,7 +75,7 @@ public:
 		
 		span->_freelist = *(void**)end;
 		*(void**)end = nullptr;
-		span->_useCount += actualnum;
+		span->_useCount ++;
 		_spanlists[index]._mtx.unlock();
 		return actualnum;
 	}
