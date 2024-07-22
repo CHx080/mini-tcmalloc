@@ -45,6 +45,7 @@ private:
 			tail = *(void**)tail;
 			start += bytes;
 		}
+		*(void**)tail = nullptr;
 
 		spanlist._mtx.lock();
 		spanlist.Insert(spanlist.Begin(), span);

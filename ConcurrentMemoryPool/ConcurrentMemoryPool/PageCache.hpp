@@ -54,7 +54,7 @@ public:
 			delete next_span;
 		}
 
-		_spanlist[span->_n].Insert(_spanlist->Begin(),span);
+		_spanlist[span->_n].Insert(_spanlist[span->_n].Begin(),span);
 		span->_isuse = false;
 		_idtoadd[span->_pageid] = span;
 		_idtoadd[span->_pageid + span->_n - 1] = span;
@@ -84,7 +84,7 @@ public:
 				//只需要记录头尾,nspan没有返回给centralcache，只需要知道起始位置和结束位置根据页数可以得到整个span便于合并
 				_idtoadd[nspan->_pageid] = nspan;
 				_idtoadd[nspan->_pageid + nspan->_n - 1] = nspan;
-				_spanlist[nspan->_n].Insert(_spanlist->Begin(), nspan);
+				_spanlist[nspan->_n].Insert(_spanlist[nspan->_n].Begin(), nspan);
 				return kspan;
 			}
 		}

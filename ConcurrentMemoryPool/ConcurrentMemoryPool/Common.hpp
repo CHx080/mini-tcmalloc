@@ -165,7 +165,7 @@ public:
 	{
 		if (bytes <= 128) return _RoundUp(bytes, 8);
 		else if (bytes <= 1024) return _RoundUp(bytes, 16);
-		else if (bytes <= 81024) return _RoundUp(bytes, 128);
+		else if (bytes <= 8 * 1024) return _RoundUp(bytes, 128);
 		else if (bytes <= 64 * 1024) return _RoundUp(bytes, 1024);
 		else if (bytes <= 256 * 1024) return _RoundUp(bytes, 8 * 1024);
 		else { assert(0); return -1; }
@@ -180,7 +180,7 @@ public:
 		else if (bytes <= 1024) {
 			return _Index(bytes - 128, 4) + group_array[0];
 		}
-		else if (bytes <= 81024) {
+		else if (bytes <= 8*1024) {
 			return _Index(bytes - 1024, 7) + group_array[1] + group_array[0];
 		}
 		else if (bytes <= 64 * 1024) {
