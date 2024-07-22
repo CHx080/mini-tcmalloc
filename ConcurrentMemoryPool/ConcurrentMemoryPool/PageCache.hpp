@@ -28,6 +28,7 @@ public:
 		return self;
 	}
 private:
+	ObjectPool<Span> s_pool;
 	static PageCache* self;
     SpanList _spanlist[NPAGES];
 	std::unordered_map<PAGE_ID, Span*> _idtoadd; //Ò³ºÅ-->µØÖ·
@@ -65,7 +66,7 @@ public:
 			span->_n += prev_span->_n;
 			
 			_spanlist[prev_span->_n].Erase(prev_span);
-			delete prev_span;
+			s_pool.Delete(prev_span);
 		}
 
 		while (1)
@@ -75,7 +76,7 @@ public:
 			Span* next_span = nextid->second;
 			span->_n += next_span->_n;
 			_spanlist[next_span->_n].Erase(next_span);
-			delete next_span;
+			s_pool.Delete(next_span);
 		}
 
 		_spanlist[span->_n].Insert(_spanlist[span->_n].Begin(),span);
@@ -95,7 +96,7 @@ public:
 			if (!_spanlist[i].IsEmpty())
 			{
 				Span* nspan = _spanlist[i].Front();
-				Span* kspan = new Span;
+				Span* kspan = s_pool.New();
 
 				kspan->_pageid = nspan->_pageid;
 				kspan->_n = k;
@@ -115,7 +116,7 @@ public:
 		}
 
 		//ÕÒÏµÍ³ÉêÇë
-		Span* bigSpan = new Span;
+		Span* bigSpan =  s_pool.New();
 		void* ptr = SystemAlloc(NPAGES-1);
 		bigSpan->_n = NPAGES - 1;
 		bigSpan->_pageid = (PAGE_ID)(ptr) >> PAGE_SHIFT;

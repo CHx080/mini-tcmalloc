@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <assert.h>
 #include <mutex>
-
+#include "ObjectPool.hpp"
 
 #ifdef _WIN64
 typedef unsigned long long PAGE_ID;
@@ -13,6 +13,7 @@ constexpr const size_t MAX_BYTES = 256 * 1024;  //小于256KB的找ThreadCache�
 constexpr const size_t NUM_LIST = 208;
 constexpr const size_t NPAGES = 129; //1024kb 129-1
 constexpr const size_t PAGE_SHIFT = 13; //1页大小为8K 
+
 
 class FreeList //管理切分好的块空间
 {
@@ -82,6 +83,7 @@ struct Span //管理
 	bool _isuse = false; //是否在被使用
 	size_t _objsize = 0; //切好的块大小
 };
+
 
 class SpanList
 {
