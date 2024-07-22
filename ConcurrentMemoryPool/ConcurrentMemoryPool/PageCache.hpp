@@ -1,6 +1,7 @@
 #pragma once
 #include "Common.hpp"
 #include <unordered_map>
+#include <unordered_set>
 #ifdef _WIN32
 #include <Windows.h>
 static void* SystemAlloc(size_t k)
@@ -35,6 +36,7 @@ private:
 	/*当spanlist中某一个哈希桶没有span时，向后检索更大的页，若存在更大的页则对该页进行切分，如果没有再向系统申请*/
 public:
 	std::mutex _mtx;//不能用桶锁
+	std::unordered_set<void*> _bigmemory;
 	
 	Span* ConvertToSpanAdd(void* address) //根据地址计算所在span跨度
 	{
@@ -46,7 +48,9 @@ public:
 
 	void* BigAlloc(size_t bytes)
 	{
-		return SystemAlloc(bytes >> PAGE_SHIFT);
+		void* p= SystemAlloc(bytes >> PAGE_SHIFT);
+		_bigmemory.insert(p);
+		return p;
 	}
 	void BigFree(void* p)
 	{

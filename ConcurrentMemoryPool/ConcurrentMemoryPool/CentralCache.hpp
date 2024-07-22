@@ -72,6 +72,7 @@ public:
 		
 		_spanlists[index]._mtx.lock();
 		Span* span = GetOneSpan(_spanlists[index], bytes);
+		span->_objsize = bytes;
 		assert(span);
 		assert(span->_freelist);
 

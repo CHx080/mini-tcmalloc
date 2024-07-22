@@ -20,15 +20,15 @@ void* ConcurrentAlloc(size_t bytes)
 		return TLSthreadcache->Allocate(bytes);
 	}
 }
-void ConcurrentFree(void* p,size_t bytes)
+void ConcurrentFree(void* p)
 {
-	if (bytes > MAX_BYTES)
+	if (PageCache::GetInstance()->_bigmemory.find(p)!=PageCache::GetInstance()->_bigmemory.end())
 	{
 		PageCache::GetInstance()->BigFree(p);
 	}
 	else
 	{
-		TLSthreadcache->Deallocate(p, bytes);
+		TLSthreadcache->Deallocate(p);
 	}
 }
 int main()
@@ -42,11 +42,11 @@ int main()
 	void* p6 = ConcurrentAlloc(36);
 	void* p7 = ConcurrentAlloc(1366);
 	void* p8 = ConcurrentAlloc(266);
-	ConcurrentFree(p, 21366);
+	ConcurrentFree(p);
 	void* p0 = ConcurrentAlloc(MAX_BYTES + 1);
-	ConcurrentFree(p0, MAX_BYTES + 1);
-	ConcurrentFree(p1, 366);
-	ConcurrentFree(p2, 23666);
+	ConcurrentFree(p0);
+	ConcurrentFree(p1);
+	ConcurrentFree(p2);
 	
 	return 0;
 }

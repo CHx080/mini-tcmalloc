@@ -26,11 +26,11 @@ public:
 		
 	}
 
-	void Deallocate(void* p,size_t bytes)
+	void Deallocate(void* p)
 	{
 		assert(p);
-		assert(bytes>0 && bytes <= MAX_BYTES);
-		size_t align = SizeMap::RoundUp(bytes);
+		size_t align = PageCache::GetInstance()->ConvertToSpanAdd(p)->_objsize;
+		//size_t align = SizeMap::RoundUp(bytes);
 		size_t index = SizeMap::Index(align);
 		_freelists[index].Push(p);
 
