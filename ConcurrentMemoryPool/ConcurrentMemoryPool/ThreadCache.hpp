@@ -90,4 +90,4 @@ private:
 };
 
 static __declspec(thread) ThreadCache* TLSthreadcache = nullptr; //声明每一个线程独占一个threadcache
-CentralCache* ThreadCache::_centralcache = new CentralCache;
+CentralCache* ThreadCache::_centralcache = CentralCache::GetInstance();

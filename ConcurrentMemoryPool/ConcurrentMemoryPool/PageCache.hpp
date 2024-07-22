@@ -8,24 +8,48 @@ static void* SystemAlloc(size_t k)
 	void* p = VirtualAlloc(NULL, k << PAGE_SHIFT, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	return p; //p的地址一定是页大小的整数倍
 }
+static void SystemFree(void* p)
+{
+	VirtualFree(p, 0, MEM_RELEASE);
+}
 #endif
 
 /*pagecache挂的也是span(每一个span大小是页大小的倍数);映射规则不同于上2层，哈希函数更简单(直接定值法)*/
 class PageCache
 {
 private:
+	PageCache()
+	{}
+	PageCache(const PageCache&) = delete;
+	PageCache& operator=(const PageCache&) = delete;
+public:
+	static PageCache* GetInstance()
+	{
+		return self;
+	}
+private:
+	static PageCache* self;
     SpanList _spanlist[NPAGES];
 	std::unordered_map<PAGE_ID, Span*> _idtoadd; //页号-->地址
 	/*当spanlist中某一个哈希桶没有span时，向后检索更大的页，若存在更大的页则对该页进行切分，如果没有再向系统申请*/
 public:
 	std::mutex _mtx;//不能用桶锁
-
+	
 	Span* ConvertToSpanAdd(void* address) //根据地址计算所在span跨度
 	{
 		PAGE_ID id = (PAGE_ID)address >> PAGE_SHIFT;
 		auto ret = _idtoadd.find(id);
 		if (ret != _idtoadd.end()) return ret->second;
 		assert(false);
+	}
+
+	void* BigAlloc(size_t bytes)
+	{
+		return SystemAlloc(bytes >> PAGE_SHIFT);
+	}
+	void BigFree(void* p)
+	{
+		SystemFree(p);
 	}
 
 	void RecoverFromCentralCache(Span* span)
@@ -62,7 +86,8 @@ public:
 
 	Span* NewSpan(size_t k) //获取大小为k页的span
 	{
-		assert(k);
+		
+
 		if (!_spanlist[k].IsEmpty()) return _spanlist[k].Front();
 
 		for (size_t i = k+1; i < NPAGES; ++i)
@@ -99,3 +124,5 @@ public:
 		return NewSpan(k);
 	}
 };
+
+PageCache* PageCache::self = new PageCache;

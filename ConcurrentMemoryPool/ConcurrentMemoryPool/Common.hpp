@@ -1,9 +1,7 @@
 ﻿#pragma once
 #include <assert.h>
 #include <mutex>
-#include <iostream>
-using std::cout;
-using std::endl;
+
 
 #ifdef _WIN64
 typedef unsigned long long PAGE_ID;
@@ -168,7 +166,7 @@ public:
 		else if (bytes <= 8 * 1024) return _RoundUp(bytes, 128);
 		else if (bytes <= 64 * 1024) return _RoundUp(bytes, 1024);
 		else if (bytes <= 256 * 1024) return _RoundUp(bytes, 8 * 1024);
-		else { assert(0); return -1; }
+		else return _RoundUp(bytes, 1 << PAGE_SHIFT);
 	}
 
 	static size_t Index(size_t bytes)

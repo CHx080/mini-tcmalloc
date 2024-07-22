@@ -8,8 +8,21 @@
 class CentralCache
 {
 private:
+	CentralCache()
+	{
+		_pagecache = PageCache::GetInstance();
+	}
+	CentralCache(const CentralCache&) = delete;
+	CentralCache& operator=(const CentralCache&) = delete;
+public:
+	static CentralCache* GetInstance()
+	{
+		return self;
+	}
+private:
 	SpanList _spanlists[NUM_LIST];
-	static PageCache* _pagecache;
+	PageCache* _pagecache;
+	static CentralCache* self;
 
 	Span* GetOneSpan(SpanList& spanlist, size_t bytes)//bytesÓÃÓÚpagecacheµÄÇĞÆ¬
 	{
@@ -111,8 +124,8 @@ public:
 		_spanlists[index]._mtx.unlock();
 	}
 }; 
-PageCache* CentralCache::_pagecache = new PageCache;
 
+CentralCache* CentralCache::self = new CentralCache;
 
 
 
