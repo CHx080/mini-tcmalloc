@@ -1,6 +1,6 @@
 #include <thread>
-#include "ThreadCache.hpp"
-
+#include "ThreadCache.h"
+#include <time.h>
 
 
 
@@ -31,22 +31,46 @@ void ConcurrentFree(void* p)
 		TLSthreadcache->Deallocate(p);
 	}
 }
+
+void test()
+{
+	//size_t size = 8*1024;
+	srand(time(0) ^ 1111);
+	std::thread t[15];
+	/*int start = clock();
+	for (int i = 0; i < 100; ++i)
+	{
+		t[i] = std::thread([&]()->void {
+			for (int j = 0; j < 1000; ++j)
+			{
+				free(malloc(1 + rand() % size));
+			}
+			});
+	}
+	for (int i = 0; i < 100; ++i)
+	{
+		t[i].join();
+	}
+	int end = clock();
+	std::cout << end - start << std::endl;*/
+
+	for (int i = 0; i < 15; ++i)
+	{
+
+		t[i] = std::thread([&]()->void {
+			for (int j = 0; j < 5; ++j)
+			{
+				ConcurrentFree(ConcurrentAlloc(rand()%(size_t)32157+1));
+			}
+		});
+	}
+	for (int i = 0; i < 15; ++i)
+	{
+		t[i].join();
+	}
+}
 int main()
 {	
-	void* p = ConcurrentAlloc(21366);
-	void* p1 = ConcurrentAlloc(366);
-	void* p2 = ConcurrentAlloc(23666);
-	void* p3 = ConcurrentAlloc(21366);
-	void* p4 = ConcurrentAlloc(6);
-	void* p5 = ConcurrentAlloc(2366);
-	void* p6 = ConcurrentAlloc(36);
-	void* p7 = ConcurrentAlloc(1366);
-	void* p8 = ConcurrentAlloc(266);
-	ConcurrentFree(p);
-	void* p0 = ConcurrentAlloc(MAX_BYTES + 1);
-	ConcurrentFree(p0);
-	ConcurrentFree(p1);
-	ConcurrentFree(p2);
-	
+	test();
 	return 0;
 }

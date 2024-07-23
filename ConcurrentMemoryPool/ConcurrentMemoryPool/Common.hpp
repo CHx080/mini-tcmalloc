@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <mutex>
 #include "ObjectPool.hpp"
+#include <iostream>
 
 #ifdef _WIN64
 typedef unsigned long long PAGE_ID;
@@ -83,7 +84,6 @@ struct Span //管理
 	bool _isuse = false; //是否在被使用
 	size_t _objsize = 0; //切好的块大小
 };
-
 
 class SpanList
 {
