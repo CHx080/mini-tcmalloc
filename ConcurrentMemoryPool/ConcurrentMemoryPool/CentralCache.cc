@@ -5,7 +5,6 @@ size_t CentralCache::FetchRangeObj(void*& start, void*& end, size_t batchnum, si
 
 	_spanlists[index]._mtx.lock();
 	Span* span = GetOneSpan(_spanlists[index], bytes);
-	span->_objsize = bytes;
 	assert(span);
 	assert(span->_freelist);
 
@@ -23,7 +22,7 @@ size_t CentralCache::FetchRangeObj(void*& start, void*& end, size_t batchnum, si
 
 	span->_freelist = *(void**)end;
 	*(void**)end = nullptr;
-	span->_useCount++;
+	span->_useCount+=actualnum;
 	_spanlists[index]._mtx.unlock();
 	return actualnum;
 }
@@ -75,6 +74,7 @@ Span* CentralCache::GetOneSpan(SpanList& spanlist, size_t bytes)//bytes用于pagec
 	PageCache::GetInstance()->_mtx.lock();
 	Span* span = PageCache::GetInstance()->NewSpan(SizeMap::NumMovePage(bytes));
 	span->_isuse = true;
+	span->_objsize = bytes;
 	PageCache::GetInstance()->_mtx.unlock();
 
 	//计算span的页起始地址和总页空间

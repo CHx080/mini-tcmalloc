@@ -2,13 +2,13 @@
 Span* PageCache::ConvertToSpanAdd(void* address)
 {
 	PAGE_ID id = (PAGE_ID)address >> PAGE_SHIFT;
+	std::lock_guard<std::mutex> lck(_mtx);
 	auto ret = _idtoadd.find(id);
-
+	//STL容器的方法不保证线程安全，即便是一些查找方法也需要加锁保护
 	if (ret != _idtoadd.end()) return ret->second;
-	else
-	{
-		int i = 0;
-	}
+	
+	auto _ret = _bigmap.find(address);
+	if (_ret != _bigmap.end()) return _ret->second;
 	assert(false); return nullptr;
 }
 
@@ -94,12 +94,19 @@ Span* PageCache::NewSpan(size_t k) //获取大小为k页的span
 void* PageCache::BigAlloc(size_t bytes)
 {
 	void* p = SystemAlloc(bytes >> PAGE_SHIFT);
-	_bigmemory.insert(p);
+	Span* span = s_pool.New();
+	span->_objsize = bytes;
+	std::lock_guard<std::mutex> lck(_bigmtx);
+	_bigmap[p] = span;
 	return p;
 }
 
 void PageCache::BigFree(void* p)
 {
+	std::lock_guard<std::mutex> lck(_bigmtx);
+	auto ret = _bigmap.find(p);
+	s_pool.Delete(ret->second);
+	_bigmap.erase(p);
 	SystemFree(p);
 }
 

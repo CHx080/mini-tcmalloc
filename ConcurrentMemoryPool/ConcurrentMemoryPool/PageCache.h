@@ -26,12 +26,12 @@ private:
 	ObjectPool<Span> s_pool;
 	static PageCache* self;
     SpanList _spanlist[NPAGES];
+	std::unordered_map<void*, Span*> _bigmap;
 	std::unordered_map<PAGE_ID, Span*> _idtoadd; //页号-->地址
 	/*当spanlist中某一个哈希桶没有span时，向后检索更大的页，若存在更大的页则对该页进行切分，如果没有再向系统申请*/
 public:
 	std::mutex _mtx;//不能用桶锁
-	std::unordered_set<void*> _bigmemory;
-
+	std::mutex _bigmtx;
 	static PageCache* GetInstance(); //获取单例对象
 	
 	Span* ConvertToSpanAdd(void* address); //根据地址计算所在span跨度

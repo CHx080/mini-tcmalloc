@@ -22,45 +22,41 @@ void* ConcurrentAlloc(size_t bytes)
 }
 void ConcurrentFree(void* p)
 {
-	if (PageCache::GetInstance()->_bigmemory.find(p)!=PageCache::GetInstance()->_bigmemory.end())
-	{
-		PageCache::GetInstance()->BigFree(p);
-	}
-	else
-	{
-		TLSthreadcache->Deallocate(p);
-	}
+	TLSthreadcache->Deallocate(p);
 }
 
-void test()
+void test1()
 {
-	//size_t size = 8*1024;
+	size_t size = 8*1024;
 	srand(time(0) ^ 1111);
 	std::thread t[15];
-	/*int start = clock();
-	for (int i = 0; i < 100; ++i)
+
+	int start = clock();
+	for (int i = 0; i < 15; ++i)
 	{
 		t[i] = std::thread([&]()->void {
-			for (int j = 0; j < 1000; ++j)
+			for (int j = 0; j < 5; ++j)
 			{
 				free(malloc(1 + rand() % size));
 			}
 			});
 	}
-	for (int i = 0; i < 100; ++i)
+	for (int i = 0; i < 15; ++i)
 	{
 		t[i].join();
 	}
 	int end = clock();
-	std::cout << end - start << std::endl;*/
+	std::cout << end - start << std::endl;
 
+
+	start = clock();
 	for (int i = 0; i < 15; ++i)
 	{
 
 		t[i] = std::thread([&]()->void {
 			for (int j = 0; j < 5; ++j)
 			{
-				ConcurrentFree(ConcurrentAlloc(rand()%(size_t)32157+1));
+				ConcurrentFree(ConcurrentAlloc(rand()%(size_t)rand()%size+1));
 			}
 		});
 	}
@@ -68,9 +64,24 @@ void test()
 	{
 		t[i].join();
 	}
+	end = clock();
+	std::cout << end - start << std::endl;
+}
+
+void alloc(){ ConcurrentFree(ConcurrentAlloc(MAX_BYTES + 1)); }
+void test2()
+{
+	std::thread t[3];
+	t[0] = std::thread(alloc);
+	t[2] = std::thread(alloc);
+	t[1] = std::thread(alloc);
+	t[0].join();
+	t[2].join();
+	t[1].join();
 }
 int main()
 {	
-	test();
+	test1();
+	//test2();
 	return 0;
 }

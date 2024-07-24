@@ -19,8 +19,14 @@ void* ThreadCache::Allocate(size_t bytes)
 void ThreadCache::Deallocate(void* p)
 {
 	assert(p);
-	size_t align = PageCache::GetInstance()->ConvertToSpanAdd(p)->_objsize;
-	//size_t align = SizeMap::RoundUp(bytes);
+	size_t bytes = PageCache::GetInstance()->ConvertToSpanAdd(p)->_objsize;
+
+	if (bytes > MAX_BYTES) 
+	{
+		PageCache::GetInstance()->BigFree(p); return;
+	}
+
+	size_t align = SizeMap::RoundUp(bytes);
 	size_t index = SizeMap::Index(align);
 	_freelists[index].Push(p);
 
