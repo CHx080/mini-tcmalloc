@@ -32,7 +32,7 @@ void test1()
 	std::thread t[15];
 
 	int start = clock();
-	for (int i = 0; i < 15; ++i)
+	/*for (int i = 0; i < 15; ++i)
 	{
 		t[i] = std::thread([&]()->void {
 			for (int j = 0; j < 5; ++j)
@@ -44,9 +44,9 @@ void test1()
 	for (int i = 0; i < 15; ++i)
 	{
 		t[i].join();
-	}
+	}*/
 	int end = clock();
-	std::cout << end - start << std::endl;
+	//std::cout << end - start << std::endl;
 
 
 	start = clock();
@@ -54,7 +54,7 @@ void test1()
 	{
 
 		t[i] = std::thread([&]()->void {
-			for (int j = 0; j < 5; ++j)
+			for (int j = 0; j < 50; ++j)
 			{
 				ConcurrentFree(ConcurrentAlloc(rand()%(size_t)rand()%size+1));
 			}

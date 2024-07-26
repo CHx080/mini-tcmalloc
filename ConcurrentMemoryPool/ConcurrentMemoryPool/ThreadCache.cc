@@ -46,7 +46,7 @@ void* ThreadCache::SolveListTooLong(FreeList& freelist, size_t n)//n标识归还多少
 	{
 		end = *(void**)end;
 	}
-	freelist.PopRange(start, end, n);
+	freelist.PopRange(end, n);
 	*(void**)end = nullptr;
 	return start;
 }

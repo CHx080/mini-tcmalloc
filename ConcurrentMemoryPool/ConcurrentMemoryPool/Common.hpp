@@ -40,7 +40,7 @@ public:
 		return obj;
 	}
 
-	void PopRange(void* start, void* end, size_t n)
+	void PopRange(void* end, size_t n)
 	{
 		_freelist = *(void**)end;
 		_size -= n;
