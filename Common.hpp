@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <assert.h>
 #include <mutex>
 #include "ObjectPool.hpp"
@@ -10,10 +10,10 @@ typedef unsigned long long PAGE_ID;
 typedef size_t PAGE_ID;
 #endif
 
-constexpr const size_t MAX_BYTES = 256 * 1024;  //小于256KB的找ThreadCache要
-constexpr const size_t NUM_LIST = 208;
-constexpr const size_t NPAGES = 129; //1024kb 129-1
-constexpr const size_t PAGE_SHIFT = 13; //1页大小为8K 
+constexpr  size_t MAX_BYTES = 256 * 1024;  //小于256KB的找ThreadCache要
+constexpr  size_t NUM_LIST = 208;
+constexpr  size_t NPAGES = 129; //1024kb 129-1
+constexpr  size_t PAGE_SHIFT = 13; //1页大小为8K 
 
 
 class FreeList //管理切分好的块空间
