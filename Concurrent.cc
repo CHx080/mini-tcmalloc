@@ -2,31 +2,24 @@
 #include "ThreadCache.h"
 #include <time.h>
 
-
-
-void* ConcurrentAlloc(size_t bytes)
-{
-	if (bytes > MAX_BYTES)
-	{
-		//Ö±½ÓÏò¶ÑÇøÉêÇë¿Õ¼ä
+void* ConcurrentAlloc(size_t bytes){
+	if (bytes > MAX_BYTES){
+		//ç›´æ¥å‘å †åŒºç”³è¯·ç©ºé—´
 		size_t align = SizeMap::RoundUp(bytes);
 		return PageCache::GetInstance()->BigAlloc(align);
 	}
-	else
-	{
-		//´ÓÄÚ´æ³ØÖĞ»ñÈ¡
+	else{
+		//ä»å†…å­˜æ± ä¸­è·å–
 		static ObjectPool<ThreadCache> t_obj;
 		if (TLSthreadcache == nullptr) TLSthreadcache = t_obj.New();
 		return TLSthreadcache->Allocate(bytes);
 	}
 }
-void ConcurrentFree(void* p)
-{
+void ConcurrentFree(void* p){
 	TLSthreadcache->Deallocate(p);
 }
 
-void test1()
-{
+void test1(){
 	size_t size = 8*1024;
 	srand(time(0) ^ 1111);
 	std::thread t[15];
