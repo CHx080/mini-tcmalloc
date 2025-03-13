@@ -2,22 +2,18 @@
 #include "Common.hpp"
 #include <unordered_map>
 #include <unordered_set>
-#ifdef _WIN32
 #include <Windows.h>
-static void* SystemAlloc(size_t k)
-{
+static void* SystemAlloc(size_t k){
 	void* p = VirtualAlloc(NULL, k << PAGE_SHIFT, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
-	return p; //pµÄµØÖ·Ò»¶¨ÊÇÒ³´óĞ¡µÄÕûÊı±¶
+	return p; //pçš„åœ°å€ä¸€å®šæ˜¯é¡µå¤§å°çš„æ•´æ•°å€
 }
-static void SystemFree(void* p)
-{
+static void SystemFree(void* p){
 	VirtualFree(p, 0, MEM_RELEASE);
 }
-#endif
 
-/*pagecache¹ÒµÄÒ²ÊÇspan(Ã¿Ò»¸öspan´óĞ¡ÊÇÒ³´óĞ¡µÄ±¶Êı);Ó³Éä¹æÔò²»Í¬ÓÚÉÏ2²ã£¬¹şÏ£º¯Êı¸ü¼òµ¥(Ö±½Ó¶¨Öµ·¨)*/
-class PageCache
-{
+
+/*pagecacheæŒ‚çš„ä¹Ÿæ˜¯span(æ¯ä¸€ä¸ªspanå¤§å°æ˜¯é¡µå¤§å°çš„å€æ•°);æ˜ å°„è§„åˆ™ä¸åŒäºä¸Š2å±‚ï¼Œç›´æ¥å®šå€¼*/
+class PageCache{
 private:
 	PageCache() {}
 	PageCache(const PageCache&) = delete;
@@ -27,21 +23,15 @@ private:
 	static PageCache* self;
     SpanList _spanlist[NPAGES];
 	std::unordered_map<void*, Span*> _bigmap;
-	std::unordered_map<PAGE_ID, Span*> _idtoadd; //Ò³ºÅ-->µØÖ·
-	/*µ±spanlistÖĞÄ³Ò»¸ö¹şÏ£Í°Ã»ÓĞspanÊ±£¬Ïòºó¼ìË÷¸ü´óµÄÒ³£¬Èô´æÔÚ¸ü´óµÄÒ³Ôò¶Ô¸ÃÒ³½øĞĞÇĞ·Ö£¬Èç¹ûÃ»ÓĞÔÙÏòÏµÍ³ÉêÇë*/
+	std::unordered_map<PAGE_ID, Span*> _idtoadd; //é¡µå·-->åœ°å€
+	/*å½“spanlistä¸­æŸä¸€ä¸ªå“ˆå¸Œæ¡¶æ²¡æœ‰spanæ—¶ï¼Œå‘åæ£€ç´¢æ›´å¤§çš„é¡µï¼Œè‹¥å­˜åœ¨æ›´å¤§çš„é¡µåˆ™å¯¹è¯¥é¡µè¿›è¡Œåˆ‡åˆ†ï¼Œå¦‚æœæ²¡æœ‰å†å‘ç³»ç»Ÿç”³è¯·*/
 public:
-	std::mutex _mtx;//²»ÄÜÓÃÍ°Ëø
+	std::mutex _mtx;
 	std::mutex _bigmtx;
-	static PageCache* GetInstance(); //»ñÈ¡µ¥Àı¶ÔÏó
-	
-	Span* ConvertToSpanAdd(void* address); //¸ù¾İµØÖ·¼ÆËãËùÔÚspan¿ç¶È
-
-	void* BigAlloc(size_t bytes); //´óÓÚ256KBÄÚ´æÉêÇë
-	void BigFree(void* p);	//´óÓÚ256KBÄÚ´æÊÍ·Å
-	
-	Span* NewSpan(size_t k); //»ñÈ¡´óĞ¡ÎªkÒ³µÄspan
-	
-	
-	void RecoverFromCentralCache(Span* span); //´ÓcentralcacheÖĞ»ØÊÕ¿Õ¼ä
-	
+	static PageCache* GetInstance(); 
+	Span* ConvertToSpanAdd(void* address); //æ ¹æ®åœ°å€è®¡ç®—æ‰€åœ¨spanè·¨åº¦
+	void* BigAlloc(size_t bytes); //å¤§äº256KBå†…å­˜ç”³è¯·
+	void BigFree(void* p);	//å¤§äº256KBå†…å­˜é‡Šæ”¾
+	Span* NewSpan(size_t k); //è·å–å¤§å°ä¸ºké¡µçš„span
+	void RecoverFromCentralCache(Span* span); //ä»centralcacheä¸­å›æ”¶ç©ºé—´
 };
