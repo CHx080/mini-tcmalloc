@@ -1,80 +1,63 @@
 #include "ThreadCache.h"
-void* ThreadCache::Allocate(size_t bytes)
-{
+void* ThreadCache::Allocate(size_t bytes){
 	if (bytes == 0) return nullptr;
-	assert(bytes > 0 && bytes <= MAX_BYTES); //ËùÉêÇëµÄ×Ö½ÚÊı±ØĞëĞ¡ÓÚ256KB
+	assert(bytes > 0 && bytes <= MAX_BYTES); //æ‰€ç”³è¯·çš„å­—èŠ‚æ•°å¿…é¡»å°äº256KB
 	size_t align = SizeMap::RoundUp(bytes);
 	size_t index = SizeMap::Index(align);
 	
-	if (!_freelists[index].IsEmpty())	//¶ÔÓ¦´óĞ¡µÄ×ÔÓÉÁ´±íÖĞÏĞÖÃ¿Õ¼ä£¬Ö±½Ó»ñÈ¡
-	{
+	if (!_freelists[index].IsEmpty())	//å¯¹åº”å¤§å°çš„è‡ªç”±é“¾è¡¨ä¸­é—²ç½®ç©ºé—´ï¼Œç›´æ¥è·å–
 		return _freelists[index].Pop();
-	}
-	else //×ÔÓÉÁ´±íÎª¿Õ£¬ÕÒÏÂÒ»²ãÒª
-	{
+	else //è‡ªç”±é“¾è¡¨ä¸ºç©ºï¼Œæ‰¾ä¸‹ä¸€å±‚è¦
 		return FetchFromCentralCache(index, align);
-	}
 }
 
-void ThreadCache::Deallocate(void* p)
-{
+void ThreadCache::Deallocate(void* p){
 	assert(p);
 	size_t bytes = PageCache::GetInstance()->ConvertToSpanAdd(p)->_objsize;
 
 	if (bytes > MAX_BYTES) 
-	{
 		PageCache::GetInstance()->BigFree(p); return;
-	}
 
 	size_t align = SizeMap::RoundUp(bytes);
 	size_t index = SizeMap::Index(align);
 	_freelists[index].Push(p);
 
-	//Èç¹û´ËÊ±_freelists[index]µÄ×ÔÓÉÁ´±í³¤¶È´ïµ½maxsize£¬½«Ò»²¿·Ö¹é»¹¸øcentralcache
-	if (_freelists[index].Size() > _freelists[index].Maxsize())
-	{
+	//å¦‚æœæ­¤æ—¶_freelists[index]çš„è‡ªç”±é“¾è¡¨é•¿åº¦è¾¾åˆ°maxsizeï¼Œå°†ä¸€éƒ¨åˆ†å½’è¿˜ç»™centralcache
+	if (_freelists[index].Size() > _freelists[index].Maxsize()){
 		void* start = SolveListTooLong(_freelists[index], _freelists[index].Maxsize());
 		CentralCache::GetInstance()->RecoverFromThreadCache(start, align);
 	}
 }
 
-void* ThreadCache::SolveListTooLong(FreeList& freelist, size_t n)//n±êÊ¶¹é»¹¶àÉÙ
-{
+void* ThreadCache::SolveListTooLong(FreeList& freelist, size_t n){
 	assert(n <= freelist.Size());
 	void* start = freelist.PeekHead(), * end = freelist.PeekHead();
 	for (int i = 0; i < n - 1; ++i)
-	{
 		end = *(void**)end;
-	}
 	freelist.PopRange(end, n);
 	*(void**)end = nullptr;
 	return start;
 }
 
-void* ThreadCache::FetchFromCentralCache(size_t index, size_t bytes) //bytesÎª¾­¹ı¶ÔÆëºóµÄ×Ö½ÚÊı
-{
-
-	/*Âı¿ªÊ¼µ÷½ÚËã·¨£¬Ğ¡¶ÔÏó¶à¸ø£¬´ó¶ÔÏóÉÙ¸ø,Ëæ×ÅÉêÇë´ÎÊıµÄÔö¶à¶øÌá¸ßbatchnum*/
+void* ThreadCache::FetchFromCentralCache(size_t index, size_t bytes) {
+	/*æ…¢å¼€å§‹è°ƒèŠ‚ç®—æ³•ï¼Œå°å¯¹è±¡å¤šç»™ï¼Œå¤§å¯¹è±¡å°‘ç»™,éšç€ç”³è¯·æ¬¡æ•°çš„å¢å¤šè€Œæé«˜batchnum*/
 	size_t batchnum = min(_freelists[index].Maxsize(), SizeMap::NumMoveSize(bytes));
 
 	if (_freelists[index].Maxsize() == batchnum)
-	{
 		_freelists[index].Maxsize() += 2;
-	}
 
-	//ÊÔÍ¼´Ó´ÓÖĞĞÄ»º´æÖĞ½ØÈ¡Ò»¶Î¿Õ¼ä
-	void* start = nullptr, * end = nullptr;//×÷ÎªÊä³öĞÍ²ÎÊı
+	//è¯•å›¾ä»ä»ä¸­å¿ƒç¼“å­˜ä¸­æˆªå–ä¸€æ®µç©ºé—´
+	void* start = nullptr, * end = nullptr;//ä½œä¸ºè¾“å‡ºå‹å‚æ•°
 	size_t actualnum = CentralCache::GetInstance()->FetchRangeObj(start, end, batchnum, bytes);
 
 	assert(actualnum >= 1);
 	assert(start);
 	assert(end);
 
-	if (actualnum > 1)
-	{
+	if (actualnum > 1){
 		void* temp = *(void**)start;
 		_freelists[index].PushRange(temp, end, actualnum - 1);
-		//°Ñ¶àµÄ¿Õ¼äÔİ´æÈëÏß³ÌËùÓµÓĞµÄ×ÔÓÉÁ´±íÖĞ
+		//æŠŠå¤šçš„ç©ºé—´æš‚å­˜å…¥çº¿ç¨‹æ‰€æ‹¥æœ‰çš„è‡ªç”±é“¾è¡¨ä¸­
 	}
 	return start;
 }
