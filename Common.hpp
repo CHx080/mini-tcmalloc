@@ -4,65 +4,51 @@
 #include "ObjectPool.hpp"
 #include <iostream>
 
-#ifdef _WIN64
-typedef unsigned long long PAGE_ID;
-#elif _WIN32
 typedef size_t PAGE_ID;
-#endif
-
 constexpr const size_t MAX_BYTES = 256 * 1024;  //小于256KB的找ThreadCache要
 constexpr const size_t NUM_LIST = 208;
 constexpr const size_t NPAGES = 129; //1024kb 129-1
 constexpr const size_t PAGE_SHIFT = 13; //1页大小为8K 
 
 
-class FreeList //管理切分好的块空间
-{
+class FreeList{
 public:
-	void Push(void* obj)//头插
-	{
-		assert(obj);//不能为空
+	void Push(void* obj){
+		assert(obj);
 		*(void**)obj = _freelist;
 		_freelist = obj;
 		++_size;
 	}
-	void PushRange(void* start, void* end,size_t n)
-	{
+	void PushRange(void* start, void* end,size_t n){
 		*(void**)end = _freelist;
 		_freelist = start; //控制头尾即可
 		_size += n;
 	}
-	void* Pop()//头删
-	{
+	void* Pop(){//头删
 		void* obj = _freelist;
 		_freelist = *(void**)obj;
 		--_size;
 		return obj;
 	}
 
-	void PopRange(void* end, size_t n)
-	{
+	void PopRange(void* end, size_t n){
 		_freelist = *(void**)end;
 		_size -= n;
 	}
 
-	bool IsEmpty()
-	{
+	bool IsEmpty(){
 		return _freelist == nullptr;
 	}
 
-	size_t& Maxsize()
-	{
+	size_t& Maxsize(){
 		return _maxsize;
 	}
 
-	size_t Size()
-	{
+	size_t Size(){
 		return _size;
 	}
 
-	void* PeekHead()
-	{
+	void* PeekHead(){
 		return _freelist;
 	}
 private:
@@ -71,8 +57,7 @@ private:
 	size_t _maxsize = 1; //与慢开始算法相关
 };
 
-struct Span //管理
-{
+struct Span {
 	PAGE_ID _pageid = 0; //大块内存页码
 	size_t _n = 0; //页的数量
 	Span* _next = nullptr;
@@ -85,38 +70,32 @@ struct Span //管理
 	size_t _objsize = 0; //切好的块大小
 };
 
-class SpanList
-{
+class SpanList{
 private:
 	Span* _head = nullptr; //哨兵位
 
 public:
 	std::mutex _mtx; //桶锁
 
-	bool IsEmpty()
-	{
+	bool IsEmpty(){
 		return _head->_next == _head;
 	}
 
-	SpanList()
-	{
+	SpanList(){
 		_head = new Span;
 		_head->_next = _head;
 		_head->_prev = _head;
 	}
 	
-	Span* Begin()
-	{
+	Span* Begin(){
 		return _head->_next;
 	}
 
-	Span* End()
-	{
+	Span* End(){
 		return _head;
 	}
 
-	void Insert(Span* cur, Span* newSpan)
-	{
+	void Insert(Span* cur, Span* newSpan){
 		assert(cur && newSpan);
 		newSpan->_next = cur;
 		newSpan->_prev = cur->_prev;
@@ -124,8 +103,7 @@ public:
 		cur->_prev = newSpan;
 	}
 
-	void Erase(Span* cur)
-	{
+	void Erase(Span* cur){
 		assert(cur && cur != _head);
 		cur->_prev->_next = cur->_next;
 		cur->_next->_prev = cur->_prev;
@@ -133,16 +111,14 @@ public:
 		//不需要delete cur，将cur交给下一层，不是系统
 	}
 
-	Span* Front()
-	{
+	Span* Front(){
 		Span* span= _head->_next;
 		Erase(span);
 		return span;
 	}
 };
 
-class SizeMap
-{
+class SizeMap{
 	// [1,128]				8byte对⻬ freelist[0,16)
 	// [128+1,1024]			16byte对⻬ freelist[16,72)
 	// [1024+1,81024]		128byte对⻬ freelist[72,128)
