@@ -2,52 +2,43 @@
 #include <stdlib.h>
 #include <exception>
 #include <mutex>
-template<typename T> class ObjectPool
-{
+template<typename T> class ObjectPool{
 private:
 	std::mutex mtx;
 public:
-	T* New()
-	{
-		
+	T* New(){
 		T* obj = nullptr;
 		mtx.lock();
-		if (_freelist) //×ÔÓÉÁ´±íÖĞÓĞÄÚ´æ£¬Ö±½Ó´ÓÁ´±íÖĞÈ¡
-		{
+		if (_freelist) {
 			obj = (T*)_freelist;
 			_freelist = *(void**)_freelist;
 		}
-		else
-		{
-			if (_leftbytes<sizeof(T))
-			{
+		else{
+			if (_leftbytes<sizeof(T)){
 				_leftbytes = 128 * 1024;
 				_memory = (char*)malloc(_leftbytes);
 				if (_memory == nullptr)
-				{
-					throw std::bad_alloc(); //ÉêÇëÊ§°ÜÅ×Òì³£
-				}
+					throw std::bad_alloc(); //ç”³è¯·å¤±è´¥æŠ›å¼‚å¸¸
 			}
 
 			obj = (T*)_memory;
 			size_t objsize= sizeof(T) < sizeof(void*) ? sizeof(void*) : sizeof(T);
-			//µ±ÉêÇëµÄÀàĞÍ´óĞ¡Ğ¡ÓÚÖ¸ÕëÀàĞÍ´óĞ¡Ê±£¬·ÖÅäÖ¸Õë´óĞ¡£¬±£Ö¤ËùÉêÇëµÄ¿Õ¼ä¿ÉÒÔ´æÏÂÒ»¸öÖ¸Õë±äÁ¿
+			//å½“ç”³è¯·çš„ç±»å‹å¤§å°å°äºæŒ‡é’ˆç±»å‹å¤§å°æ—¶ï¼Œåˆ†é…æŒ‡é’ˆå¤§å°ï¼Œä¿è¯æ‰€ç”³è¯·çš„ç©ºé—´å¯ä»¥å­˜ä¸‹ä¸€ä¸ªæŒ‡é’ˆå˜é‡
 			_memory += objsize;
 			_leftbytes -= objsize;
 		}
 		mtx.unlock();
-		new(obj)T; //¶¨Î»new³õÊ¼»¯¶ÔÏó
+		new(obj)T; //å®šä½newåˆå§‹åŒ–å¯¹è±¡
 		return obj;
 	}
 
-	void Delete(T* obj)
-	{
+	void Delete(T* obj){
 		obj->~T();
 		*(void**)obj = _freelist;
 		_freelist = obj;
 	}
 private:
-	size_t _leftbytes = 0;//´ó¿éÄÚ´æÊ£Óà×Ö½ÚÊı
-	char* _memory = nullptr; //Ö¸Ïò´ó¿éÄÚ´æ
-	void* _freelist = nullptr;//Ö¸Ïò×ÔÓÉÁ´±í
+	size_t _leftbytes = 0;//å¤§å—å†…å­˜å‰©ä½™å­—èŠ‚æ•°
+	char* _memory = nullptr; //æŒ‡å‘å¤§å—å†…å­˜
+	void* _freelist = nullptr;//æŒ‡å‘è‡ªç”±é“¾è¡¨
 };
